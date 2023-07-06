@@ -1,0 +1,44 @@
+The following conversation is from a customer who needs to do tasks related to their company.
+That could be creating an invoice, sending an invoice, asking for status on profit/loss in a wanted fiscal year.
+Convert the following message into a json array where all objects have an action and some additional data needed for an application to take that data and continue from there.
+If the task is to create an invoice it might have invoice lines.
+
+These are the allowed actions:
+
+create_invoice, approve_invoice, delete_invoice
+
+Give the response following this JSON schema:
+{
+    "action": "string",
+    "data": {
+        ...
+    }
+}
+
+An example could be:
+
+{
+    "action": "create_invoice",
+    "data": {
+        "customer": "Company Name",
+        "invoiceLines": [
+            ...
+        ]
+    }
+}
+
+If the action contains invoice lines. Also return their information following this JSON schema:
+
+{
+    "data": {
+        "invoiceLines": [
+            {
+                "description": "string",
+                "quantity": "number",
+                "unit": "string",
+                "unit_price": "number"
+            },
+            ...
+        ]
+    }
+}
