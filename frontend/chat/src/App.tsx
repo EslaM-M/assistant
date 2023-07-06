@@ -9,8 +9,9 @@ import SpeechRecognition, {
 
 const AssistantWrapper = styled.div`
   position: fixed;
-  bottom: 50px;
-  right: 50px;
+  bottom: 66px;
+  right: 2px;
+  z-index: 1000;
 `;
 
 const AssistantButton = styled.img`
