@@ -1,9 +1,11 @@
 import styled from "styled-components";
 import billy from "./assets/billy.png";
-import {ChangeEvent, FormEvent, useCallback, useState} from "react";
+import {FormEvent, useCallback, useState} from "react";
 import {ArrowRight, X} from "react-feather";
 import {useMutation} from "react-query";
 import axios from "axios";
+import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
+
 
 const AssistantWrapper = styled.div`
   position: fixed;
@@ -91,6 +93,12 @@ function App() {
         },
     })
 
+    const {
+        transcript,
+        listening,
+        resetTranscript,
+    } = useSpeechRecognition();
+
     const onSubmit = useCallback(async (e: FormEvent) => {
         e.preventDefault()
         await mutation.mutateAsync({
@@ -110,6 +118,19 @@ function App() {
                         <ChatConversation>
                             Hey! How can I help?
                         </ChatConversation>
+                        <div style={{width: '100%'}}>
+                            <p>Microphone: {listening ? 'on' : 'off'}</p>
+                            <button onClick={() => SpeechRecognition.startListening({continuous: true})}>Start</button>
+                            <button onClick={() => {
+                                SpeechRecognition.stopListening();
+                                setPrompt(transcript ?? '');
+                            }}>Send</button>
+                            <button onClick={resetTranscript}>Reset</button>
+                            <ChatTextArea style={{width: '340px', height: '90px'}}
+                              placeholder="Click 'start' and speak. Click 'send' when ready."
+                              value={transcript}
+                            />
+                        </div>
                         <ChatTextArea
                             placeholder="I want to ..."
                             onChange={(e: any) => setPrompt(e.target.value ?? '')}
