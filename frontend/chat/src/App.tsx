@@ -114,7 +114,10 @@ function App() {
 
   const mutation = useMutation<{ message: string }, {}, { prompt: string }>({
     mutationFn: ({ prompt }) => {
-      return axios.post("https://f4f8-194-255-211-39.ngrok-free.app/api/assistant", { prompt });
+      return axios.post(
+        "https://f4f8-194-255-211-39.ngrok-free.app/api/assistant",
+        { prompt }
+      );
     },
   });
 
@@ -132,6 +135,8 @@ function App() {
           result?.data?.conversation_id || ""
         );
         setConversationId(result?.data?.conversation_id);
+        console.log("result?.data?.messages", result?.data?.messages);
+        setConversation(result?.data?.messages || []);
       }
     },
     [prompt]
@@ -165,22 +170,21 @@ function App() {
           <ChatWindow onSubmit={onSubmit}>
             <ChatConversation>
               <AssistantMessage>Hey! How can I help?</AssistantMessage>
-              {conversation
-                .sort((a: any, b: any) => a.created.localeCompare(b.created))
-                .map((message: any) => {
+              {Object.keys(conversation)
+                .map((key: any) => {
                   return (
                     <div style={{ display: "flex" }}>
-                      {message.role === "assistant" && (
-                        <AssistantMessage>{message.content}</AssistantMessage>
+                      {conversation[key].role === "assistant" && (
+                        <AssistantMessage>{conversation[key].content}</AssistantMessage>
                       )}
-                      {message.role === "client" && (
-                        <ClientMessage>{message.content}</ClientMessage>
+                      {conversation[key].role.role === "user" && (
+                        <ClientMessage>{conversation[key].content}</ClientMessage>
                       )}
                     </div>
                   );
                 })}
             </ChatConversation>
-            <div style={{ width: "100%" }}>
+            <div style={{ width: "100%", background: "white" }}>
               <p>Microphone: {listening ? "on" : "off"}</p>
               <button
                 onClick={() =>
@@ -199,7 +203,7 @@ function App() {
               </button>
               <button onClick={resetTranscript}>Reset</button>
               <ChatTextArea
-                style={{ width: "340px", height: "90px" }}
+                style={{ width: "340px", height: "90px", background: "white" }}
                 placeholder="Click 'start' and speak. Click 'send' when ready."
                 value={transcript}
               />
