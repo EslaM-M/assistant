@@ -114,7 +114,7 @@ function App() {
 
   const mutation = useMutation<{ message: string }, {}, { prompt: string }>({
     mutationFn: ({ prompt }) => {
-      return axios.post("https://assistant.ageras.com/api/assistant", { prompt });
+      return axios.post("https://f4f8-194-255-211-39.ngrok-free.app/api/assistant", { prompt });
     },
   });
 
@@ -142,7 +142,7 @@ function App() {
       const conversation_id = window.localStorage.getItem("conversation_id");
       if (conversation_id) {
         const messages = (await axios.get(
-          `https://assistant.ageras.com/api/assistant/?conversation_id=${conversation_id}`
+          `https://f4f8-194-255-211-39.ngrok-free.app/api/assistant/?conversation_id=${conversation_id}`
         )) as any;
         setConversation(messages?.conversation || []);
 
