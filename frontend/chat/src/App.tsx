@@ -6,6 +6,7 @@ import axios from "axios";
 import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
+import * as React from "react";
 
 const AssistantWrapper = styled.div`
   position: fixed;
@@ -53,9 +54,13 @@ const ChatWindow = styled.form`
 
 const ChatConversation = styled.div`
   display: flex;
+  flex-direction: column;
+  gap: 10px;
   flex-grow: 2;
   background-color: #eee;
   padding: 10px 10px;
+  max-height: 50vh;
+  overflow: scroll;
 `;
 
 const ChatTextArea = styled.textarea`
@@ -80,8 +85,27 @@ const Button = styled.button`
   border-radius: 10px;
 `;
 
+const AssistantMessage = styled.div`
+  text-align: left;
+  background-color: white;
+  border-radius: 10px;
+  padding: 10px;
+  line-height: 18px;
+`;
+
+const ClientMessage = styled.div`
+  text-align: right;
+  background-color: lightblue;
+  border-radius: 10px;
+  padding: 10px;
+  line-height: 18px;
+`;
+
 function App() {
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [conversation, setConversation] = useState<any>([]);
+  const [conversationId, setConversationId] = useState("");
+
   const toggleChat = useCallback(() => {
     setIsChatOpen(!isChatOpen);
   }, [isChatOpen]);
@@ -90,7 +114,7 @@ function App() {
 
   const mutation = useMutation<{ message: string }, {}, { prompt: string }>({
     mutationFn: ({ prompt }) => {
-      return axios.post("http://localhost/api/assistant", { prompt });
+      return axios.post("http://64.227.120.254/api/assistant", { prompt });
     },
   });
 
@@ -99,12 +123,34 @@ function App() {
   const onSubmit = useCallback(
     async (e: FormEvent) => {
       e.preventDefault();
-      await mutation.mutateAsync({
-        prompt,
-      });
+      if (prompt) {
+        const result = (await mutation.mutateAsync({
+          prompt,
+        })) as any;
+        window.localStorage.setItem(
+          "conversation_id",
+          result?.data?.conversation_id || ""
+        );
+        setConversationId(result?.data?.conversation_id);
+      }
     },
     [prompt]
   );
+
+  React.useEffect(() => {
+    const getMessages = async () => {
+      const conversation_id = window.localStorage.getItem("conversation_id");
+      if (conversation_id) {
+        const messages = (await axios.get(
+          `http://64.227.120.254/api/assistant/?conversation_id=${conversation_id}`
+        )) as any;
+        setConversation(messages?.conversation || []);
+
+        return messages;
+      }
+    };
+    getMessages();
+  }, [conversationId]);
 
   return (
     <AssistantWrapper>
@@ -117,7 +163,23 @@ function App() {
             </div>
           </ChatHeader>
           <ChatWindow onSubmit={onSubmit}>
-            <ChatConversation>Hey! How can I help?</ChatConversation>
+            <ChatConversation>
+              <AssistantMessage>Hey! How can I help?</AssistantMessage>
+              {conversation
+                .sort((a: any, b: any) => a.created.localeCompare(b.created))
+                .map((message: any) => {
+                  return (
+                    <div style={{ display: "flex" }}>
+                      {message.role === "assistant" && (
+                        <AssistantMessage>{message.content}</AssistantMessage>
+                      )}
+                      {message.role === "client" && (
+                        <ClientMessage>{message.content}</ClientMessage>
+                      )}
+                    </div>
+                  );
+                })}
+            </ChatConversation>
             <div style={{ width: "100%" }}>
               <p>Microphone: {listening ? "on" : "off"}</p>
               <button
